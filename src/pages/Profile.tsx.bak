@@ -1,0 +1,814 @@
+import { useState, useRef, useEffect } from "react"
+import { Edit, MapPin, Calendar, Users, Settings, Camera, Lock, Plus, MessageSquare, Flag, Bell, UserPlus, MoreHorizontal, Heart, MessageCircle, Image as ImageIcon, X, Send } from "lucide-react"
+import { NexusButton } from "@/components/ui/nexus-button"
+import Layout from "@/components/Layout"
+import { useParams } from "react-router-dom"
+
+// Definir tipo para el perfil de usuario
+interface UserProfile {
+  username: string;
+  displayName: string;
+  bio: string;
+  location: string;
+  joinDate: string;
+  role: string;
+  experience: string;
+  interests: string[];
+  relationship?: string;
+  orientation?: string;
+  pronouns?: string;
+  status?: string;
+  lookingFor?: string[];
+  stats: {
+    friends: number;
+    groups: number;
+    events: number;
+    photos?: number;
+  };
+  privacy: {
+    profileVisible: string;
+    messagesFrom: string;
+    albumsVisible: string;
+  };
+  isCurrentUser?: boolean;
+}
+
+// Datos de ejemplo para el perfil de otro usuario
+const otherUserProfile: UserProfile = {
+  username: "usuario_ejemplo",
+  displayName: "Usuario de Ejemplo",
+  bio: "¡Hola! Soy un usuario de ejemplo en Nexus Kin Connect.",
+  location: "Madrid, España",
+  joinDate: "Enero 2023",
+  role: "Miembro Premium",
+  experience: "Avanzado",
+  interests: ["Tecnología", "Viajes", "Música"],
+  relationship: "Soltero/a",
+  orientation: "Heterosexual",
+  pronouns: "Él/Ella",
+  status: "En línea",
+  lookingFor: ["Amistad", "Relación seria", "Networking"],
+  stats: {
+    friends: 156,
+    groups: 8,
+    events: 12,
+    photos: 24
+  },
+  privacy: {
+    profileVisible: "Miembros",
+    messagesFrom: "Amigos",
+    albumsVisible: "Amigos"
+  },
+  isCurrentUser: false
+};
+
+const Profile = () => {
+  const { username } = useParams();
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const photosFileInputRef = useRef<HTMLInputElement>(null);
+  const [isCurrentUser, setIsCurrentUser] = useState(!username); // Si no hay username en la URL, es el perfil actual
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('about');
+  
+  // Definir tipos para los escritos y comentarios
+  interface Comment {
+    id: string;
+    author: string;
+    content: string;
+    date: string;
+  }
+
+  interface Writing {
+    id: string;
+    content: string;
+    author: string;
+    date: string;
+    likes: number;
+    comments: Comment[];
+  }
+
+  const [writings, setWritings] = useState<Writing[]>([]);
+  const [newWriting, setNewWriting] = useState('');
+  const [newComment, setNewComment] = useState<{[key: string]: string}>({});
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    username: "usuario_nuevo",
+    displayName: "Usuario Nuevo",
+    bio: "Haz clic en 'Editar Perfil' para agregar información sobre ti...",
+    location: "Ubicación no especificada",
+    joinDate: "Recién registrado",
+    role: "Sin especificar",
+    experience: "Principiante",
+    interests: [],
+    relationship: "No especificado",
+    orientation: "No especificado",
+    pronouns: "No especificado",
+    status: "Activo",
+    lookingFor: [],
+    stats: {
+      friends: 0,
+      groups: 0,
+      events: 0,
+      photos: 0
+    },
+    privacy: {
+      profileVisible: "Miembros",
+      messagesFrom: "Amigos",
+      albumsVisible: "Amigos"
+    }
+  })
+
+  // Estado para edición del perfil
+  const [editForm, setEditForm] = useState({
+    displayName: userProfile.displayName,
+    bio: userProfile.bio,
+    location: userProfile.location,
+    role: userProfile.role,
+    experience: userProfile.experience,
+    interests: userProfile.interests
+  })
+
+  // Datos de ejemplo para las pestañas
+  const friendsData: Array<{id: string, name: string}> = [];
+  const groupsData: Array<{id: string, name: string}> = [];
+  const albumsData: Array<{id: string, title: string, cover: string}> = [];
+  
+  // Configuración de pestañas
+  const tabs = [
+    { id: 'about', label: 'Acerca de', icon: Users },
+    { id: 'activity', label: 'Actividad', icon: Users },
+    { id: 'photos', label: 'Fotos', icon: Camera },
+    { id: 'writings', label: 'Escritos', icon: Edit }
+  ];
+
+  const handleChangePhoto = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Determinar qué perfil mostrar
+  const profileToShow: UserProfile = isCurrentUser ? userProfile : otherUserProfile;
+
+  // Cargar fotos y escritos al montar el componente
+  useEffect(() => {
+    // Datos de ejemplo para fotos
+    const examplePhotos = [
+      'https://via.placeholder.com/300',
+      'https://via.placeholder.com/301',
+      'https://via.placeholder.com/302',
+      'https://via.placeholder.com/303',
+    ];
+    setPhotos(examplePhotos);
+
+    // Datos de ejemplo para escritos
+    const exampleWritings = [
+      {
+        id: '1',
+        content: 'Este es mi primer escrito en la plataforma. ¡Espero que les guste!',
+        author: 'Usuario Nuevo',
+        date: 'Hace 2 días',
+        likes: 5,
+        comments: [
+          {
+            id: 'c1',
+            author: 'Amigo1',
+            content: '¡Me encantó tu escrito!',
+            date: 'Hace 1 día'
+          }
+        ]
+      }
+    ];
+    setWritings(exampleWritings);
+  }, []);
+
+  // Manejadores de eventos
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotos(prev => [...prev, reader.result as string]);
+        // Aquí iría la lógica para subir la foto al servidor
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddWriting = () => {
+    if (!newWriting.trim() && !selectedFile) return;
+    
+    const newPost: Writing = {
+      id: Date.now().toString(),
+      content: newWriting,
+      author: userProfile.displayName,
+      date: new Date().toISOString(),
+      likes: 0,
+      comments: []
+    };
+    
+    setWritings(prev => [newPost, ...prev]);
+    setNewWriting('');
+    setSelectedFile(null);
+    // Aquí iría la lógica para guardar el escrito en el servidor
+  };
+
+  const handleAddComment = (writingId: string) => {
+    if (!newComment[writingId]?.trim()) return;
+    
+    setWritings(prev => 
+      prev.map(writing => {
+        if (writing.id === writingId) {
+          return {
+            ...writing,
+            comments: [
+              ...writing.comments,
+              {
+                id: `comment-${Date.now()}`,
+                author: userProfile.displayName,
+                content: newComment[writingId],
+                date: new Date().toISOString()
+              }
+            ]
+          };
+        }
+        return writing;
+      })
+    );
+    setNewComment(prev => ({ ...prev, [writingId]: '' }));
+    // Aquí iría la lógica para guardar el comentario en el servidor
+  };
+
+  const handleLike = (writingId: string) => {
+    setWritings(prev => 
+      prev.map(writing => {
+        if (writing.id === writingId) {
+          return {
+            ...writing,
+            likes: writing.likes + 1
+          };
+        }
+        return writing;
+      })
+    );
+    // Aquí iría la lógica para actualizar los likes en el servidor
+  };
+  
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({
+      displayName: userProfile.displayName,
+      bio: userProfile.bio,
+      location: userProfile.location,
+      role: userProfile.role,
+      experience: userProfile.experience,
+      interests: userProfile.interests
+    });
+  };
+  
+  const handleSaveProfile = () => {
+    setUserProfile(prev => ({
+      ...prev,
+      ...editForm
+    }));
+    setIsEditing(false);
+  };
+
+  return (
+    <Layout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Contenido del perfil */}
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          {/* Sección de cabecera */}
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Perfil de {profileToShow.displayName}
+            </h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              Información personal y detalles
+            </p>
+          </div>
+          
+          {/* Navegación de pestañas */}
+          <div className="border-t border-gray-200">
+            <nav className="flex -mb-px">
+              {['about', 'photos', 'writings'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`${
+                    activeTab === tab
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </nav>
+          </div>
+          
+          {/* Contenido principal del perfil */}
+          <div className="px-4 py-5 sm:p-6 flex flex-col md:flex-row gap-6">
+            {/* Foto de perfil y acciones */}
+            <div className="flex flex-col items-center w-full md:w-1/4">
+              <div className="relative w-40 h-40 rounded-full bg-muted overflow-hidden mb-4">
+                {profileImage || isCurrentUser ? (
+                    <img 
+                      src={profileImage || '/default-avatar.png'} 
+                      alt="Foto de perfil" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-primary">
+                      <span className="text-white text-4xl font-bold">
+                        {profileToShow.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                {isCurrentUser && (
+                  <>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button 
+                      onClick={handleChangePhoto}
+                      className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-primary/90 transition-colors"
+                    >
+                      <Camera className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+              
+              {isCurrentUser ? (
+                <NexusButton 
+                  variant="nexusOutline" 
+                  size="sm" 
+                  className="mt-4"
+                  onClick={() => setIsEditing(!isEditing)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  {isEditing ? 'Cancelar' : 'Editar Perfil'}
+                </NexusButton>
+              ) : (
+                <div className="flex flex-col gap-2 mt-4 w-full">
+                  <NexusButton className="w-full">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Enviar mensaje
+                  </NexusButton>
+                  <NexusButton variant="outline" className="w-full">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Agregar amigo
+                  </NexusButton>
+                </div>
+              )}
+            </div>
+
+            {/* Profile Info */}
+            <div className="flex-1 space-y-4">
+              {/* Sección de acciones para perfiles de otros usuarios */}
+              {!isCurrentUser && (
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h1 className="text-3xl font-bold text-foreground">{profileToShow.displayName}</h1>
+                    <p className="text-muted-foreground">
+                      {profileToShow.location}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                      <MoreHorizontal className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              {!isEditing ? (
+                <>
+                  {isCurrentUser && (
+                    <div>
+                      <h1 className="text-3xl font-bold text-foreground">{profileToShow.displayName}</h1>
+                      <p className="text-xl text-primary">@{profileToShow.username}</p>
+                    </div>
+                  )}
+
+                  <p className="text-muted-foreground leading-relaxed">
+                    {profileToShow.bio}
+                  </p>
+
+                  {/* Sección de información detallada para perfiles de otros usuarios */}
+                  {!isCurrentUser && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <h3 className="font-medium text-foreground">Relaciones</h3>
+                          <p className="text-muted-foreground">{profileToShow.relationship}</p>
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-foreground">Roles</h3>
+                          <p className="text-muted-foreground">{profileToShow.role}</p>
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-foreground">Orientación</h3>
+                          <p className="text-muted-foreground">{profileToShow.orientation}</p>
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-foreground">Pronombres</h3>
+                          <p className="text-muted-foreground">{profileToShow.pronouns}</p>
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-foreground">Estado</h3>
+                          <p className="text-muted-foreground">{profileToShow.status}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium text-foreground">Busco</h3>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {profileToShow.lookingFor.map((item, index) => (
+                            <span key={index} className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm">
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 border-t border-border">
+                        <p className="text-sm text-muted-foreground">
+                          Te uniste {profileToShow.joinDate}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Información básica para el perfil propio */}
+                  {isCurrentUser && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center text-muted-foreground">
+                        <MapPin className="h-4 w-4 mr-2 text-primary" />
+                        {profileToShow.location}
+                      </div>
+                      <div className="flex items-center text-muted-foreground">
+                        <Calendar className="h-4 w-4 mr-2 text-primary" />
+                        Miembro desde {profileToShow.joinDate}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-4 gap-4 pt-4 border-t border-border mt-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary">{profileToShow.stats.photos || 0}</div>
+                      <div className="text-sm text-muted-foreground">Fotos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary">{profileToShow.stats.friends || 0}</div>
+                      <div className="text-sm text-muted-foreground">Amigos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary">{profileToShow.stats.groups || 0}</div>
+                      <div className="text-sm text-muted-foreground">Grupos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary">{profileToShow.stats.events || 0}</div>
+                      <div className="text-sm text-muted-foreground">Eventos</div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Formulario de edición */
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Nombre de usuario
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.displayName}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, displayName: e.target.value }))}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                      placeholder="Tu nombre de usuario"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Biografía
+                    </label>
+                    <textarea
+                      value={editForm.bio}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                      rows={3}
+                      placeholder="Cuéntanos sobre ti..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Ubicación
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.location}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
+                        className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                        placeholder="Tu ubicación"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Rol en la comunidad
+                      </label>
+                      <select
+                        value={editForm.role}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, role: e.target.value }))}
+                        className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                      >
+                        <option value="Sin especificar">Sin especificar</option>
+                        <option value="Dominante">Dominante</option>
+                        <option value="Sumiso">Sumiso</option>
+                        <option value="Switch">Switch</option>
+                        <option value="Vanilla">Vanilla</option>
+                        <option value="Explorando">Explorando</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <NexusButton onClick={handleSaveProfile}>
+                      Guardar Cambios
+                    </NexusButton>
+                    <NexusButton variant="nexusOutline" onClick={handleCancelEdit}>
+                      Cancelar
+                    </NexusButton>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Pestañas de navegación */}
+        <div className="border-t border-gray-200 mt-4">
+          <nav className="flex -mb-px">
+            {['about', 'photos', 'writings'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`${
+                  activeTab === tab
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm`}
+              >
+                {tab === 'about' && 'Acerca de'}
+                {tab === 'photos' && 'Fotos'}
+                {tab === 'writings' && 'Escritos'}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div className="space-y-6">
+          {activeTab === 'about' && (
+            <div className="mt-6">
+              <h2 className="text-xl font-bold mb-4">Información del perfil</h2>
+              {/* Contenido de la pestaña Acerca de */}
+            </div>
+          )}
+          {activeTab === 'activity' && (
+            <div className="mt-6">
+              <h2 className="text-xl font-bold mb-4">Actividad reciente</h2>
+              <div className="bg-muted/50 p-4 rounded-lg text-center">
+                <p className="text-muted-foreground">No hay actividad reciente para mostrar</p>
+              </div>
+            </div>
+          )}
+          {activeTab === 'photos' && (
+            <div className="mt-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Fotos</h2>
+                {isCurrentUser && (
+                  <NexusButton 
+                    size="sm" 
+                    onClick={() => photosFileInputRef.current?.click()}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Subir foto
+                  </NexusButton>
+                )}
+              </div>
+              <input
+                type="file"
+                ref={photosFileInputRef}
+                onChange={handlePhotoUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              {photos.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {photos.map((photo, index) => (
+                    <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                      <img 
+                        src={photo} 
+                        alt={`Foto ${index + 1}`} 
+                        className="w-full h-full object-cover hover:scale-105 transition-transform"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-muted/50 p-8 rounded-lg text-center">
+                  <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <h3 className="text-lg font-medium mb-1">No hay fotos</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {isCurrentUser 
+                      ? 'Comparte tus fotos con la comunidad' 
+                      : 'Este usuario aún no ha compartido fotos'}
+                  </p>
+                  {isCurrentUser && (
+                    <NexusButton onClick={() => photosFileInputRef.current?.click()}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Subir tu primera foto
+                    </NexusButton>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          {activeTab === 'writings' && (
+            <div className="mt-6">
+              <h2 className="text-xl font-bold mb-4">Escritos</h2>
+              
+              {isCurrentUser && (
+                <div className="bg-card rounded-lg border border-border p-4 mb-6">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        {userProfile.displayName.charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <textarea
+                        value={newWriting}
+                        onChange={(e) => setNewWriting(e.target.value)}
+                        placeholder="¿En qué estás pensando?"
+                        className="w-full min-h-[100px] p-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
+                        rows={3}
+                      />
+                      <div className="flex justify-between items-center mt-2">
+                        <div className="flex gap-2">
+                          <button 
+                            className="p-2 text-muted-foreground hover:text-primary rounded-full hover:bg-muted"
+                            onClick={() => {}}
+                          >
+                            <ImageIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                        <NexusButton 
+                          onClick={handleAddWriting}
+                          disabled={!newWriting.trim()}
+                        >
+                          Publicar
+                        </NexusButton>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-6">
+                {writings.length > 0 ? (
+                  writings.map((writing) => (
+                    <div key={writing.id} className="bg-card rounded-lg border border-border overflow-hidden">
+                      <div className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                              {writing.author.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{writing.author}</h4>
+                              <p className="text-xs text-muted-foreground">{writing.date}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="mt-3 text-foreground">{writing.content}</p>
+                        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+                          <button 
+                            className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+                            onClick={() => handleLike(writing.id)}
+                          >
+                            <Heart className="h-5 w-5" />
+                            <span>{writing.likes}</span>
+                          </button>
+                          <button className="flex items-center gap-1 text-muted-foreground hover:text-primary">
+                            <MessageCircle className="h-5 w-5" />
+                            <span>{writing.comments.length}</span>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Comentarios */}
+                      {writing.comments.length > 0 && (
+                        <div className="bg-muted/30 border-t border-border p-4">
+                          <div className="space-y-3">
+                            {writing.comments.map((comment) => (
+                              <div key={comment.id} className="flex gap-2">
+                                <div className="flex-shrink-0">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary">
+                                    {comment.author.charAt(0).toUpperCase()}
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="bg-background rounded-lg p-2">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm font-medium">{comment.author}</span>
+                                      <span className="text-xs text-muted-foreground">{comment.date}</span>
+                                    </div>
+                                    <p className="text-sm mt-1">{comment.content}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Formulario de comentario */}
+                      <div className="p-4 border-t border-border">
+                        <div className="flex gap-2">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary">
+                              {userProfile.displayName.charAt(0).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="flex-1 relative">
+                            <input
+                              type="text"
+                              value={newComment[writing.id] || ''}
+                              onChange={(e) => setNewComment(prev => ({
+                                ...prev,
+                                [writing.id]: e.target.value
+                              }))}
+                              placeholder="Escribe un comentario..."
+                              className="w-full px-3 py-2 pr-10 bg-background border border-border rounded-full focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                              onKeyPress={(e) => e.key === 'Enter' && handleAddComment(writing.id)}
+                            />
+                            <button 
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-primary"
+                              onClick={() => handleAddComment(writing.id)}
+                            >
+                              <Send className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-muted/50 p-8 rounded-lg text-center">
+                    <Edit className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                    <h3 className="text-lg font-medium mb-1">
+                      {isCurrentUser ? 'Aún no has publicado ningún escrito' : 'Este usuario aún no ha publicado escritos'}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {isCurrentUser 
+                        ? 'Comparte tus pensamientos con la comunidad' 
+                        : 'Vuelve más tarde para ver sus publicaciones'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Layout>
+  )
+}
+
+export default Profile

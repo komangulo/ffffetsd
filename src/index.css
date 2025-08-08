@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Nexus Design System - Dark, Discrete, Professional */
+
+@layer base {
+  :root {
+    /* Dark theme optimized for discrete social platform */
+    --background: 220 13% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 220 13% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 220 13% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary brand colors - Deep red accent */
+    --primary: 0 65% 45%;
+    --primary-foreground: 210 40% 98%;
+    --primary-glow: 0 65% 55%;
+
+    --secondary: 220 13% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 220 13% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 220 13% 18%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 13% 20%;
+    --input: 220 13% 15%;
+    --ring: 0 65% 45%;
+
+    /* Custom gradients for Nexus */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-dark: linear-gradient(180deg, hsl(var(--background)), hsl(220 13% 5%));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(220 13% 10%));
+
+    /* Shadows with red glow */
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
+    --shadow-subtle: 0 4px 12px hsl(220 13% 5% / 0.4);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 13% 10%;
+    --sidebar-foreground: 215 20% 65%;
+    --sidebar-primary: 0 65% 45%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 220 13% 20%;
+    --sidebar-ring: 0 65% 45%;
+  }
+
+  .dark {
+    --background: 220 13% 8%;
+    --foreground: 210 40% 98%;
+    --card: 220 13% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 13% 12%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 0 65% 45%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 220 13% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 13% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 220 13% 18%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 13% 20%;
+    --input: 220 13% 15%;
+    --ring: 0 65% 45%;
+    --sidebar-background: 220 13% 10%;
+    --sidebar-foreground: 215 20% 65%;
+    --sidebar-primary: 0 65% 45%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 220 13% 20%;
+    --sidebar-ring: 0 65% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Nexus Custom Components */
+  .nexus-glow {
+    box-shadow: var(--shadow-glow);
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  .nexus-card {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .nexus-hero-text {
+    color: hsl(var(--foreground));
+    background: none;
+    -webkit-text-fill-color: initial;
+  }
+}
+
+@keyframes glow {
+  0% { 
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  100% { 
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
+  }
+}
