@@ -8,8 +8,8 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import FetichesPage from "./pages/fetiches";
 import Roles from "./pages/Roles";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
+import Login from "./pages/auth/login";
+import Register from "./pages/auth/register";
 import NotFound from "./pages/NotFound";
 
 const App = () => (

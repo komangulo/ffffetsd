@@ -387,3 +387,4 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModalProps) 
 export default CreateEventModal
 
 
+
