@@ -34,6 +34,7 @@ const Navigation = () => {
   const dropdownItems = [
     { name: "Fetiches", href: "/fetiches", icon: Heart },
     { name: "Roles", href: "/roles", icon: Heart },
+    { name: "Fetichionario", href: "/fetichionario", icon: Heart },
   ]
 
   const isActive = (path: string) => location.pathname === path
@@ -77,13 +78,13 @@ const Navigation = () => {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className={cn(
                   "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  (isActive("/fetiches") || isActive("/roles"))
+                  (isActive("/fetiches") || isActive("/roles") || isActive("/fetichionario"))
                     ? "text-primary bg-primary/10"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent"
                 )}
               >
                 <Heart className="h-4 w-4" />
-                <span>Fetiches</span>
+                <span>Mas</span>
                 <ChevronDown className={cn("h-4 w-4 transition-transform", isDropdownOpen && "rotate-180")} />
               </button>
               
